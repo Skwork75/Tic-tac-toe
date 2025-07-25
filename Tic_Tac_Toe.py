@@ -1,160 +1,117 @@
-
+import tkinter as tk
+from tkinter import messagebox, simpledialog
 import random
-import time
 
+class TicTacToeGUI:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Tic Tac Toe - Saurabh Kumar")
 
-def main():
-    head()
-    game()
+        self.current_player = random.choice(["X", "O"])
+        self.board_state = ["" for _ in range(9)]
+        self.tiles = []
 
+        self.score_x = 0
+        self.score_o = 0
+        self.total_rounds = 1
+        self.current_round = 1
 
-def head():
-    print('''
-Tic Tac Toe Saurabh kumar group
+        self.setup_ui()
+        self.display_turn()
 
+    def setup_ui(self):
+        self.info_label = tk.Label(self.master, text="", font=("Arial", 14))
+        self.info_label.pack(pady=10)
 
-    ''')
+        self.grid_frame = tk.Frame(self.master)
+        self.grid_frame.pack()
 
-    print("_________________")
-    print("|----Welcome----|")
-    print("|-------to------|")
-    print("|--Tic-Tac-Toe--|")
-    print("|_______________|\n")
-    print('')
+        for pos in range(9):
+            btn = tk.Button(self.grid_frame, text="", font=("Arial", 20), width=6, height=3,
+                            command=lambda pos=pos: self.on_tile_click(pos))
+            btn.grid(row=pos//3, column=pos%3)
+            self.tiles.append(btn)
 
+        self.reset_btn = tk.Button(self.master, text="Start New Match", command=self.start_new_match)
+        self.reset_btn.pack(pady=10)
 
-def matrix(cells):  # Declaring a function as the map of the game.
-    print("---------\n"
-          '|', cells[0], cells[1], cells[2], '|\n' +
-          '|', cells[3], cells[4], cells[5], '|\n' +
-          '|', cells[6], cells[7], cells[8], '|\n' +
-          "---------\n")
+    def on_tile_click(self, idx):
+        if self.board_state[idx] == "":
+            self.board_state[idx] = self.current_player
+            self.tiles[idx].config(text=self.current_player)
 
+            if self.check_for_winner():
+                self.handle_win(f"{self.current_player} wins Round {self.current_round}!")
+                return
 
-def game():
-    while True:
-        rounds = 0
+            if "" not in self.board_state:
+                self.handle_win("This round is a draw!")
+                return
 
-        x_score = 0
-        o_score = 0
+            self.current_player = "O" if self.current_player == "X" else "X"
+            self.display_turn()
 
-        while True:
-            try:
-                rounds = int(input("How many rounds you want to play?: "))
-                break
-            except ValueError:
-                print("\nPlease enter only numerical values!\n")
-                continue
+    def check_for_winner(self):
+        wins = [(0, 1, 2), (3, 4, 5), (6, 7, 8),
+                (0, 3, 6), (1, 4, 7), (2, 5, 8),
+                (0, 4, 8), (2, 4, 6)]
+        for a, b, c in wins:
+            if self.board_state[a] == self.board_state[b] == self.board_state[c] != "":
+                return True
+        return False
 
-        choice = ["O", "X"]
-        turn = random.choice(choice)
-
-        for i in range(rounds):
-            print("")
-            print("{-> Round", i + 1, "<-}")
-            print("")
-
-            print("Current Map:")  # Setting up the default blank map.
-            cells = ['_', '_', '_', '_', '_', '_', '_', '_', '_']
-
-            matrix(cells)
-
-            for _ in range(9):  # Running the loop for maximum possibilities
-                empty_count = 0
-                x_wins = False
-                o_wins = False
-
-                # Switching the turn of the players.
-                if turn == "X":
-                    turn = "O"
-                else:
-                    turn = "X"
-                print("|->", turn + "'s", "turn <-|")
-
-                # Taking the position input from the user with error handling.
-                while True:
-                    try:
-                        usr = int(input("Enter the position (1-9): "))
-                        if usr > 9:
-                            print("")
-                            print("Please enter values between 1-9!\n")
-                            continue
-                        elif cells[usr - 1] != '_':
-                            print("")
-                            print("|-> This position is already occupied! <-|\n")
-                            continue
-                    except ValueError:
-                        print("")
-                        print("Please enter only numerical values!\n")
-                    else:
-                        break
-
-                cells[usr - 1] = turn
-
-                for cell in cells:
-                    if cell == "_":
-                        empty_count += 1
-
-                # Setting up all of the winning situations.
-
-                hor1 = cells[0] + cells[1] + cells[2]
-                hor2 = cells[3] + cells[4] + cells[5]
-                hor3 = cells[6] + cells[7] + cells[8]
-
-                ver1 = cells[0] + cells[3] + cells[6]
-                ver2 = cells[1] + cells[4] + cells[7]
-                ver3 = cells[2] + cells[5] + cells[8]
-
-                dia1 = cells[0] + cells[4] + cells[8]
-                dia2 = cells[2] + cells[4] + cells[6]
-
-                wins = [hor1, hor2, hor3, ver1, ver2, ver3, dia1, dia2]
-
-                matrix(cells)  # Calling out the map function.
-
-                if "XXX" in wins:
-                    x_wins = True
-                if "OOO" in wins:
-                    o_wins = True
-
-                if x_wins:
-                    x_score += 1
-                    print("|-> X is the winner of Round", str(i + 1) + "! <-|\n")
-                    break
-
-                elif o_wins:
-                    o_score += 1
-                    print("|-> O is the winner of Round", str(i + 1) + "! <-|\n")
-                    break
-
-                elif empty_count == 0:
-                    print("|-> Draw! <-|\n")
-
-            print("----------X" * 4)
-            print("")
-        print("____________________________________________")
-        print("                FINAL SCORES")
-        print("____________________________________________")
-        print("      Player X       |      Player O")
-        print("|>       ", x_score, "         |        ", o_score, "         <|")
-        print("--------------------------------------------\n")
-
-        if o_score > x_score:
-            print("|============= O Won the match ============|\n")
-        elif x_score > o_score:
-            print("|============= X Won the match ============|\n")
+    def handle_win(self, msg):
+        if self.current_player == "X":
+            self.score_x += 1
         else:
-            print("|=============== Draw match ===============|\n")
+            self.score_o += 1
 
-        ng = input("\nDo you want to play another match [y/n]: ")
-        print("")
-        if ng == "n" or ng == "N":
-            print("Exiting now...")
-            time.sleep(1)
-            break
+        messagebox.showinfo("Round Result", msg)
+        self.current_round += 1
+
+        if self.current_round > self.total_rounds:
+            self.declare_final_winner()
         else:
-            continue
+            self.reset_board()
+
+    def reset_board(self):
+        self.board_state = ["" for _ in range(9)]
+        for btn in self.tiles:
+            btn.config(text="")
+        self.current_player = random.choice(["X", "O"])
+        self.display_turn()
+
+    def start_new_match(self):
+        self.score_x = 0
+        self.score_o = 0
+        self.current_round = 1
+        self.total_rounds = self.get_round_count()
+        self.reset_board()
+
+    def get_round_count(self):
+        try:
+            count = int(simpledialog.askstring("Rounds", "Enter number of rounds to play:"))
+            return max(1, count)
+        except:
+            return 1
+
+    def declare_final_winner(self):
+        if self.score_x > self.score_o:
+            result_msg = "Player X wins the match!"
+        elif self.score_o > self.score_x:
+            result_msg = "Player O wins the match!"
+        else:
+            result_msg = "It's a tie match!"
+
+        result_msg += f"\nFinal Score:\nX: {self.score_x}  O: {self.score_o}"
+        messagebox.showinfo("Match Result", result_msg)
+        self.start_new_match()
+
+    def display_turn(self):
+        self.info_label.config(text=f"Round {self.current_round} / {self.total_rounds} - {self.current_player}'s turn")
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    window = tk.Tk()
+    game_app = TicTacToeGUI(window)
+    window.mainloop()
